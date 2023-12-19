@@ -42,14 +42,18 @@ const isUserAuthorized = (req, res, next) => {
       next();
     }
   } catch (error) {
+    console.log(error);
     res.json({
       status: 0,
-      msg: "Unauthorized",
+      msg: "Unauthorized ERROR",
     });
   }
 };
 
 const db_table_employees = "employees";
+const db_table_devices = "devices";
+const db_table_devices_current_info = "devices_current_info";
+const db_table_feedbacks = "feedbacks";
 
 //
 //
@@ -193,7 +197,7 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/get-employees", isUserAuthorized, async (req, res) => {
-  let employees = await db.select("*").from("employees");
+  let employees = await db.select("*").from(db_table_employees);
   res.json(employees);
 });
 
@@ -215,6 +219,127 @@ app.post("/verify-user-upon-entering", isUserAuthorized, async (req, res) => {
   });
 });
 
+app.post("/register-new-device", isUserAuthorized, async (req, res) => {
+  const { uniqueID, lat, lng } = req.body;
+
+  var myDate = new Date();
+  var pstDate = myDate.toLocaleString("en-US", {
+    timeZone: "America/Los_Angeles",
+  });
+
+  db(db_table_devices)
+    .returning("*")
+    .insert({
+      unique_id: uniqueID,
+      lat,
+      lng,
+    })
+    .then((data) => {
+      if (!data.length) {
+        res.json({
+          status: 0,
+          msg: "Unable to register new device",
+        });
+      } else {
+        db(db_table_devices_current_info)
+          .returning("*")
+          .insert({
+            unique_id: uniqueID,
+            battery: 100,
+            level: 0,
+            last_updated: pstDate,
+          })
+          .then(async (data) => {
+            if (!data.length) {
+              res.json({
+                status: 0,
+                msg: "Unable to register new device",
+              });
+            } else {
+              let devices = await db(db_table_devices).select("*");
+              let devices_currentInfo = await db(
+                db_table_devices_current_info
+              ).select("*");
+              let mergedDevices = mergeDeviceArrays(
+                devices,
+                devices_currentInfo
+              );
+
+              res.json({
+                status: 1,
+                msg: "The device has been registered successfully",
+                allDevices: mergedDevices,
+              });
+            }
+          });
+      }
+    })
+    .catch((e) => {
+      res.json({
+        status: 0,
+        msg: "Unable to register new device",
+      });
+    });
+});
+
+app.post("/get-devices", isUserAuthorized, async (req, res) => {
+  let devices = await db(db_table_devices).select("*");
+  let devices_currentInfo = await db(db_table_devices_current_info).select("*");
+  let mergedDevices = mergeDeviceArrays(devices, devices_currentInfo);
+  res.json({
+    status: 1,
+    devices: mergedDevices,
+  });
+});
+
+app.post("/add-feedback", isUserAuthorized, async (req, res) => {
+  const { uniqueID, title, description } = req.body;
+  let userFound = await db(db_table_employees).select("*").where({
+    id: req.cookies["user_id"],
+  });
+
+  db(db_table_feedbacks)
+    .returning("*")
+    .insert({
+      device_id: uniqueID,
+      reported_by_id: userFound[0].id,
+      reported_by_name: userFound[0].fname + " " + userFound[0].lname,
+      title,
+      description,
+      assigned_to: null,
+      completed: false,
+    })
+    .then(async (data) => {
+      if (!data.length) {
+        res.json({
+          status: 0,
+          msg: "Unable to add feedback",
+        });
+      } else {
+        let feedbacks = await db(db_table_feedbacks).select("*");
+        res.json({
+          status: 1,
+          msg: "Feedback added successfully",
+          feedbacks,
+        });
+      }
+    })
+    .catch((e) => {
+      res.json({
+        status: 0,
+        msg: "Unable to add feedback_ERROR",
+      });
+    });
+});
+
+app.post("/get-feedbacks", isUserAuthorized, async (req, res) => {
+  let feedbacks = await db(db_table_feedbacks).select("*");
+  res.json({
+    status: 1,
+    feedbacks,
+  });
+});
+
 //
 //
 //
@@ -224,3 +349,12 @@ const PORT_number = process.env.PORT || 3000;
 app.listen(PORT_number, () => {
   console.log(`listening to port ${PORT_number}`);
 });
+
+// helper functions
+const mergeDeviceArrays = (array1, array2) => {
+  const mergedArray = array1.map((obj1) => {
+    const obj2 = array2.find((obj2) => obj2.unique_id === obj1.unique_id);
+    return { ...obj1, ...obj2 };
+  });
+  return mergedArray;
+};
