@@ -1,3 +1,4 @@
+const http = require("http");
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -6,6 +7,17 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
+const app = express();
+app.use(cookieParser());
+app.use(cors({ credentials: true, origin: [process.env.FRONT_END_DOMAIN] }));
+app.use(bodyParser.json());
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONT_END_DOMAIN,
+  },
+});
 
 const db = knex({
   client: "pg",
@@ -19,19 +31,9 @@ const db = knex({
   },
 });
 
-const app = express();
-app.use(cookieParser());
-app.use(
-  cors({
-    credentials: true,
-    origin: ["http://localhost:3001"],
-  })
-);
-app.use(bodyParser.json());
-
 const isUserAuthorized = (req, res, next) => {
   try {
-    const cookie = req.cookies["jwt"];
+    const cookie = String(req.cookies["jwt"]);
     const claims = jwt.verify(cookie, process.env.JWT_SECRET_KEY);
     if (!claims) {
       res.json({
@@ -59,6 +61,19 @@ const db_table_feedbacks = "feedbacks";
 //
 //
 //
+
+io.on("connection", (socket) => {
+  // console.log("ID connected: " + socket.id);
+
+  setInterval(async () => {
+    let devices = await db(db_table_devices).select("*");
+    let devices_currentInfo = await db(db_table_devices_current_info).select(
+      "*"
+    );
+    let mergedDevices = mergeDeviceArrays(devices, devices_currentInfo);
+    socket.emit("request_data", mergedDevices);
+  }, 4000);
+});
 
 app.post("/register_admin", async (req, res) => {
   const { fname, lname, email, password, start_date } = req.body;
@@ -345,8 +360,40 @@ app.post("/get-feedbacks", isUserAuthorized, async (req, res) => {
 //
 //
 
+// to be deleted later
+app.get("/temporary-change-device-values", (req, res) => {
+  let deviceIDs = ["48", "79", "119", "134", "264"];
+
+  let constructedDevices = deviceIDs.map((deviceID) => {
+    return {
+      unique_id: deviceID,
+      battery: Math.floor(Math.random() * 101),
+      level: Math.floor(Math.random() * 101),
+    };
+  });
+
+  let emptyArray = [];
+
+  constructedDevices.map((device) => {
+    db(db_table_devices_current_info)
+      .returning("*")
+      .update({
+        battery: device.battery,
+        level: device.level,
+      })
+      .where({
+        unique_id: device.unique_id,
+      })
+      .then((data) => {
+        emptyArray = data;
+      });
+  });
+
+  res.json(emptyArray);
+});
+
 const PORT_number = process.env.PORT || 3000;
-app.listen(PORT_number, () => {
+server.listen(PORT_number, () => {
   console.log(`listening to port ${PORT_number}`);
 });
 
