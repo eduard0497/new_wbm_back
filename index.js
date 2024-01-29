@@ -52,6 +52,8 @@ const isUserAuthorized = (req, res, next) => {
   }
 };
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+
 const db_table_employees = "employees";
 const db_table_devices = "devices";
 const db_table_devices_current_info = "devices_current_info";
