@@ -12,6 +12,20 @@ app.use(cookieParser());
 // app.use(cors({ credentials: true, origin: [process.env.FRONT_END_DOMAIN] }));
 app.use(cors());
 app.use(bodyParser.json());
+
+//
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Credentials", true);
+  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin,X-Requested-With,Content-Type,Accept,content-type,application/json"
+  );
+  next();
+});
+//
+
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
