@@ -209,12 +209,16 @@ app.post("/login", async (req, res) => {
     maxAge: 24 * 60 * 60 * 1000,
     domain: modified_front_end_domain,
     secure: true,
+    sameSite: "None",
+    path: "/",
   });
 
   res.cookie("user_id", foundUser.id, {
     maxAge: 24 * 60 * 60 * 1000,
     domain: modified_front_end_domain,
     secure: true,
+    sameSite: "None",
+    path: "/",
   });
 
   res.send({
