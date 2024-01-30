@@ -10,7 +10,7 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const app = express();
 app.use(cookieParser());
-app.use(cors({ credentials: true, origin: process.env.FRONT_END_DOMAIN }));
+app.use(cors({ origin: process.env.FRONT_END_DOMAIN, credentials: true }));
 // app.use(cors());
 app.use(bodyParser.json());
 
@@ -207,18 +207,14 @@ app.post("/login", async (req, res) => {
   res.cookie("jwt", token, {
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    domain: modified_front_end_domain,
     secure: true,
     sameSite: "None",
-    path: "/",
   });
 
   res.cookie("user_id", foundUser.id, {
     maxAge: 24 * 60 * 60 * 1000,
-    domain: modified_front_end_domain,
     secure: true,
     sameSite: "None",
-    path: "/",
   });
 
   res.send({
