@@ -24,6 +24,7 @@ const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
     origin: process.env.FRONT_END_DOMAIN,
+    credentials: true,
   },
 });
 
