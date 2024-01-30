@@ -41,7 +41,7 @@ const db = knex({
 const isUserAuthorized = (req, res, next) => {
   try {
     const cookie = String(req.cookies["jwt"]);
-    const claims = jwt.verify(cookie, process.env.JWT_SECRET_KEY.toString());
+    const claims = jwt.verify(cookie, process.env.JWT_SECRET_KEY);
     if (!claims) {
       res.json({
         status: 0,
@@ -191,7 +191,7 @@ app.post("/login", async (req, res) => {
 
   const token = await jwt.sign(
     { id: foundUser.id },
-    process.env.JWT_SECRET_KEY.toString()
+    process.env.JWT_SECRET_KEY
   );
 
   res.cookie("jwt", token, {
