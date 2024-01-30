@@ -1,3 +1,4 @@
+// const _FRONT_END_DOMAIN = ""
 const http = require("http");
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -9,21 +10,13 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const app = express();
 app.use(cookieParser());
-app.use(cors({ credentials: true, origin: [process.env.FRONT_END_DOMAIN] }));
+app.use(cors({ credentials: true, origin: process.env.FRONT_END_DOMAIN }));
 // app.use(cors());
 app.use(bodyParser.json());
 
-//
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin,X-Requested-With,Content-Type,Accept,content-type,application/json"
-  );
-  next();
-});
-//
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+
+console.log(process.env.FRONT_END_DOMAIN);
 
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -65,8 +58,6 @@ const isUserAuthorized = (req, res, next) => {
     });
   }
 };
-
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const db_table_employees = "employees";
 const db_table_devices = "devices";
