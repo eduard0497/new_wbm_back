@@ -10,7 +10,11 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const app = express();
 app.use(cookieParser());
-app.use(cors({ origin: process.env.FRONT_END_DOMAIN, credentials: true }));
+const corsOptions = {
+  origin: process.env.FRONT_END_DOMAIN,
+  credentials: true,
+};
+app.use(cors(corsOptions));
 // app.use(cors());
 app.use(bodyParser.json());
 
@@ -22,10 +26,7 @@ console.log(process.env.FRONT_END_DOMAIN);
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONT_END_DOMAIN,
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
 const db = knex({
