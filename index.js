@@ -164,6 +164,7 @@ app.post("/login", async (req, res) => {
   let foundRows = await db(db_table_employees).select("*").where({
     email,
   });
+  console.log(foundRows);
 
   if (foundRows.length == 0) {
     res.json({
@@ -194,13 +195,17 @@ app.post("/login", async (req, res) => {
     process.env.JWT_SECRET_KEY
   );
 
+  console.log(token);
+
   res.cookie("jwt", token, {
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
+    secure: true,
   });
 
   res.cookie("user_id", foundUser.id, {
     maxAge: 24 * 60 * 60 * 1000,
+    secure: true,
   });
 
   res.send({
