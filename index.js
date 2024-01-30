@@ -200,11 +200,13 @@ app.post("/login", async (req, res) => {
   res.cookie("jwt", token, {
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
+    domain: process.env.FRONT_END_DOMAIN,
     secure: true,
   });
 
   res.cookie("user_id", foundUser.id, {
     maxAge: 24 * 60 * 60 * 1000,
+    domain: process.env.FRONT_END_DOMAIN,
     secure: true,
   });
 
