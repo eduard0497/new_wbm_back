@@ -16,6 +16,7 @@ app.use(bodyParser.json());
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
+console.log("Front End Domain from ENV");
 console.log(process.env.FRONT_END_DOMAIN);
 
 const server = http.createServer(app);
@@ -164,7 +165,6 @@ app.post("/login", async (req, res) => {
   let foundRows = await db(db_table_employees).select("*").where({
     email,
   });
-  console.log(foundRows);
 
   if (foundRows.length == 0) {
     res.json({
@@ -195,18 +195,25 @@ app.post("/login", async (req, res) => {
     process.env.JWT_SECRET_KEY
   );
 
+  console.log("Token generated in Login");
   console.log(token);
+
+  let front_end_domain = process.env.FRONT_END_DOMAIN.toString();
+  let modified_front_end_domain = front_end_domain.replace(/https:\/\//g, ".");
+
+  console.log("Modified Front end domain");
+  console.log(modified_front_end_domain);
 
   res.cookie("jwt", token, {
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    domain: process.env.FRONT_END_DOMAIN,
+    domain: modified_front_end_domain,
     secure: true,
   });
 
   res.cookie("user_id", foundUser.id, {
     maxAge: 24 * 60 * 60 * 1000,
-    domain: process.env.FRONT_END_DOMAIN,
+    domain: modified_front_end_domain,
     secure: true,
   });
 
