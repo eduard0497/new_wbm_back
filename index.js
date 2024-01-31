@@ -10,20 +10,15 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const app = express();
 app.use(cookieParser());
+// const corsOptions = {
+//   origin: process.env.FRONT_END_DOMAIN,
+//   credentials: true,
+// };
 const corsOptions = {
-  origin: process.env.FRONT_END_DOMAIN,
+  origin: "*",
   credentials: true,
 };
-//
-// app.use(cors(corsOptions));
-//
-app.use(
-  cors({
-    origin: "*",
-    credentials: true,
-  })
-);
-//
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
