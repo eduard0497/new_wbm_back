@@ -384,6 +384,26 @@ app.post("/get-feedbacks", isUserAuthorized, async (req, res) => {
   });
 });
 
+app.post("/bin-update", async (req, res) => {
+  const { deviceID, measuredLevel, measuredBattery } = req.body;
+
+  database(db_table_devices_current_info)
+    .returning("*")
+    .update({
+      battery: measuredBattery,
+      level: measuredLevel,
+    })
+    .where({
+      unique_id: deviceID,
+    })
+    .then((data) => {
+      res.json({
+        msg: "all devices returned",
+        devices: data,
+      });
+    });
+});
+
 //
 //
 //
