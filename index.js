@@ -89,7 +89,6 @@ app.get("/", (req, res) => {
   const origin = req.get("origin");
   console.log("Request from:", origin);
   res.json({
-    msg: "Hi buddy",
     yourDomain: origin,
   });
 });
