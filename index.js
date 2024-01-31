@@ -10,14 +10,26 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const app = express();
 app.use(cookieParser());
+
+//
+//
+//
+//
+
 // const corsOptions = {
 //   origin: process.env.FRONT_END_DOMAIN,
 //   credentials: true,
 // };
+
 const corsOptions = {
   origin: "*",
   credentials: true,
 };
+
+//
+//
+//
+//
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
@@ -74,8 +86,11 @@ const db_table_feedbacks = "feedbacks";
 //
 
 app.get("/", (req, res) => {
+  const origin = req.get("origin");
+  console.log("Request from:", origin);
   res.json({
     msg: "Hi buddy",
+    yourDomain: origin,
   });
 });
 //
