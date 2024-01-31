@@ -432,7 +432,7 @@ app.post("/bin-update", async (req, res) => {
 //
 
 // to be deleted later
-app.get("/temporary-change-device-values", (req, res) => {
+app.post("/temporary-change-device-values", (req, res) => {
   // let deviceIDs = ["48", "79", "119", "134", "264"];
   const { binsToUpdate } = req.body;
 
