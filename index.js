@@ -395,7 +395,7 @@ app.post("/get-feedbacks", isUserAuthorized, async (req, res) => {
 app.post("/bin-update", async (req, res) => {
   const { deviceID, measuredLevel, measuredBattery } = req.body;
 
-  database(db_table_devices_current_info)
+  db(db_table_devices_current_info)
     .returning("*")
     .update({
       battery: measuredBattery,
