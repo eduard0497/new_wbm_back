@@ -17,7 +17,13 @@ app.use(cookieParser());
 //
 
 const corsOptions = {
-  origin: [process.env.FRONT_END_DOMAIN],
+  origin: [
+    process.env.FRONT_END_DOMAIN,
+    "10.42.0.1",
+    "10.40.36.118",
+    "172.17.0.1",
+    "192.168.208.1",
+  ],
   credentials: true,
 };
 
