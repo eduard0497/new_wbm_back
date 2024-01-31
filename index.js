@@ -72,12 +72,6 @@ const db_table_feedbacks = "feedbacks";
 //
 //
 
-app.get("/", (req, res) => {
-  res.json({
-    msg: "works",
-  });
-});
-
 io.on("connection", (socket) => {
   // console.log("ID connected: " + socket.id);
 
