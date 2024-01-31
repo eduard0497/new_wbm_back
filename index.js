@@ -14,8 +14,15 @@ const corsOptions = {
   origin: process.env.FRONT_END_DOMAIN,
   credentials: true,
 };
+//
 // app.use(cors(corsOptions));
-app.use(cors());
+//
+app.use(
+  cors({
+    credentials: true,
+  })
+);
+//
 app.use(bodyParser.json());
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
