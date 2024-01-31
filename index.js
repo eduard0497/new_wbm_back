@@ -436,11 +436,11 @@ app.post("/temporary-change-device-values", (req, res) => {
   // let deviceIDs = ["48", "79", "119", "134", "264"];
   const { binsToUpdate } = req.body;
 
-  let constructedDevices = binsToUpdate.map((deviceID) => {
+  let constructedDevices = binsToUpdate.map((bins) => {
     return {
-      unique_id: deviceID,
-      battery: binsToUpdate.measuredBatteryd,
-      level: binsToUpdate.measuredLevel,
+      unique_id: bins.deviceID,
+      battery: bins.measuredBatteryd,
+      level: bins.measuredLevel,
     };
     // return {
     //   unique_id: deviceID,
