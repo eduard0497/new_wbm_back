@@ -96,7 +96,6 @@ const db_table_feedbacks = "feedbacks";
 //
 
 app.get("/", (req, res) => {
-  console.log(req);
   let origin = "Hiiii";
   res.json({
     yourDomain: origin,
