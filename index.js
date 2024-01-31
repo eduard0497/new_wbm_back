@@ -69,6 +69,12 @@ const db_table_feedbacks = "feedbacks";
 
 //
 //
+
+app.get("/", (req, res) => {
+  res.json({
+    msg: "Hi buddy",
+  });
+});
 //
 //
 
