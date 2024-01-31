@@ -26,6 +26,16 @@ const corsOptions = {
   credentials: true,
 };
 
+app.use((req, res, next) => {
+  const origin = req.get("origin");
+  console.log("Request from:", origin);
+  // You can use the origin value as needed, for example, for CORS handling
+
+  // Your other middleware or route handling code here
+
+  next(); // Don't forget to call next() to pass the request to the next middleware or route handler
+});
+
 //
 //
 //
