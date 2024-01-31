@@ -433,14 +433,20 @@ app.post("/bin-update", async (req, res) => {
 
 // to be deleted later
 app.get("/temporary-change-device-values", (req, res) => {
-  let deviceIDs = ["48", "79", "119", "134", "264"];
+  // let deviceIDs = ["48", "79", "119", "134", "264"];
+  const { binsToUpdate } = req.body;
 
-  let constructedDevices = deviceIDs.map((deviceID) => {
+  let constructedDevices = binsToUpdate.map((deviceID) => {
     return {
       unique_id: deviceID,
-      battery: Math.floor(Math.random() * 101),
-      level: Math.floor(Math.random() * 101),
+      battery: binsToUpdate.measuredBatteryd,
+      level: binsToUpdate.measuredLevel,
     };
+    // return {
+    //   unique_id: deviceID,
+    //   battery: Math.floor(Math.random() * 101),
+    //   level: Math.floor(Math.random() * 101),
+    // };
   });
 
   let emptyArray = [];
