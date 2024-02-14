@@ -41,8 +41,6 @@ app.use(bodyParser.json());
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-console.log("Front End Domain from ENV");
-console.log(process.env.FRONT_END_DOMAIN);
 
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -219,13 +217,10 @@ app.post("/login", async (req, res) => {
     process.env.JWT_SECRET_KEY
   );
 
-  console.log("Token generated in Login");
-  console.log(token);
 
   let front_end_domain = process.env.FRONT_END_DOMAIN.toString();
   let modified_front_end_domain = front_end_domain.replace(/https:\/\//g, ".");
 
-  console.log("Modified Front end domain");
   console.log(modified_front_end_domain);
 
   res.cookie("jwt", token, {
