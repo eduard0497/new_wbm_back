@@ -431,7 +431,6 @@ app.post("/bin-update", async (req, res) => {
 //
 //
 
-let object = {};
 
 // to be deleted later
 app.post("/temporary-change-device-values", (req, res) => {
