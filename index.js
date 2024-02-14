@@ -431,42 +431,59 @@ app.post("/bin-update", async (req, res) => {
 //
 //
 
+let object = {};
+
 // to be deleted later
 app.post("/temporary-change-device-values", (req, res) => {
-  // let deviceIDs = ["48", "79", "119", "134", "264"];
-  const { binsToUpdate } = req.body;
+  const { binToUpdate } = req.body;
 
-  let constructedDevices = binsToUpdate.map((bins) => {
-    return {
-      unique_id: bins.deviceID,
-      battery: bins.measuredBatteryd,
-      level: bins.measuredLevel,
-    };
-    // return {
-    //   unique_id: deviceID,
-    //   battery: Math.floor(Math.random() * 101),
-    //   level: Math.floor(Math.random() * 101),
-    // };
-  });
+  // let constructedDevices = binsToUpdate.map((bins) => {
+  //   return {
+  //     unique_id: bins.deviceID,
+  //     battery: bins.measuredBattery,
+  //     level: bins.measuredLevel,
+  //   };
+  // });
 
-  let emptyArray = [];
+  // let emptyArray = [];
 
-  constructedDevices.map((device) => {
-    db(db_table_devices_current_info)
-      .returning("*")
-      .update({
-        battery: device.battery,
-        level: device.level,
-      })
-      .where({
-        unique_id: device.unique_id,
-      })
-      .then((data) => {
-        emptyArray = data;
-      });
-  });
+  // constructedDevices.map((device) => {
+  //   db(db_table_devices_current_info)
+  //     .returning("*")
+  //     .update({
+  //       battery: device.battery,
+  //       level: device.level,
+  //     })
+  //     .where({
+  //       unique_id: device.unique_id,
+  //     })
+  //     .then((data) => {
+  //       emptyArray = data;
+  //     });
+  // });
 
-  res.json(emptyArray);
+  db(db_table_devices_current_info)
+    .returning("*")
+    .update({
+      battery: binToUpdate.measuredBattery,
+      level: binToUpdate.measuredLevel,
+    })
+    .where({
+      unique_id: binToUpdate.deviceID,
+    })
+    .then((data) => {
+      if (!data.length) {
+        res.json({
+          status: 0,
+          msg: "Unable to update",
+        });
+      } else {
+        res.json({
+          status: 1,
+          msg: "Updated Successfully",
+        });
+      }
+    });
 });
 
 const PORT_number = process.env.PORT || 3000;
