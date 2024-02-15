@@ -41,7 +41,6 @@ app.use(bodyParser.json());
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
@@ -88,13 +87,6 @@ const db_table_feedbacks = "feedbacks";
 
 //
 //
-
-app.get("/", (req, res) => {
-  let origin = "Hiiii";
-  res.json({
-    yourDomain: origin,
-  });
-});
 //
 //
 
@@ -216,7 +208,6 @@ app.post("/login", async (req, res) => {
     { id: foundUser.id },
     process.env.JWT_SECRET_KEY
   );
-
 
   let front_end_domain = process.env.FRONT_END_DOMAIN.toString();
   let modified_front_end_domain = front_end_domain.replace(/https:\/\//g, ".");
@@ -401,6 +392,7 @@ app.post("/get-feedbacks", isUserAuthorized, async (req, res) => {
   });
 });
 
+// testing
 app.post("/bin-update", async (req, res) => {
   const { deviceID, measuredLevel, measuredBattery } = req.body;
 
@@ -409,6 +401,7 @@ app.post("/bin-update", async (req, res) => {
     .update({
       battery: measuredBattery,
       level: measuredLevel,
+      last_updated: new Date().toLocaleString(),
     })
     .where({
       unique_id: deviceID,
@@ -421,46 +414,16 @@ app.post("/bin-update", async (req, res) => {
     });
 });
 
-//
-//
-//
-//
-
-
-// to be deleted later
+// testing
 app.post("/temporary-change-device-values", (req, res) => {
   const { binToUpdate } = req.body;
-
-  // let constructedDevices = binsToUpdate.map((bins) => {
-  //   return {
-  //     unique_id: bins.deviceID,
-  //     battery: bins.measuredBattery,
-  //     level: bins.measuredLevel,
-  //   };
-  // });
-
-  // let emptyArray = [];
-
-  // constructedDevices.map((device) => {
-  //   db(db_table_devices_current_info)
-  //     .returning("*")
-  //     .update({
-  //       battery: device.battery,
-  //       level: device.level,
-  //     })
-  //     .where({
-  //       unique_id: device.unique_id,
-  //     })
-  //     .then((data) => {
-  //       emptyArray = data;
-  //     });
-  // });
 
   db(db_table_devices_current_info)
     .returning("*")
     .update({
       battery: binToUpdate.measuredBattery,
       level: binToUpdate.measuredLevel,
+      last_updated: new Date().toLocaleString(),
     })
     .where({
       unique_id: binToUpdate.deviceID,
