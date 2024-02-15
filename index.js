@@ -272,12 +272,9 @@ app.post("/verify-user-upon-entering", isUserAuthorized, async (req, res) => {
 });
 
 app.post("/register-new-device", isUserAuthorized, async (req, res) => {
-  const { uniqueID, lat, lng } = req.body;
+  const { uniqueID, lat, lng, binHeight } = req.body;
 
   var myDate = new Date();
-  var pstDate = myDate.toLocaleString("en-US", {
-    timeZone: "America/Los_Angeles",
-  });
 
   db(db_table_devices)
     .returning("*")
@@ -299,7 +296,7 @@ app.post("/register-new-device", isUserAuthorized, async (req, res) => {
             unique_id: uniqueID,
             battery: 100,
             level: 0,
-            last_updated: pstDate,
+            binHeight,
           })
           .then(async (data) => {
             if (!data.length) {
