@@ -11,11 +11,6 @@ require("dotenv").config();
 const app = express();
 app.use(cookieParser());
 
-//
-//
-//
-//
-
 const corsOptions = {
   origin: [
     process.env.FRONT_END_DOMAIN,
@@ -26,16 +21,6 @@ const corsOptions = {
   ],
   credentials: true,
 };
-
-// const corsOptions = {
-//   origin: "*",
-//   credentials: true,
-// };
-
-//
-//
-//
-//
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
@@ -82,7 +67,7 @@ const isUserAuthorized = (req, res, next) => {
 
 const db_table_employees = "employees";
 const db_table_devices = "devices";
-const db_table_devices_current_info = "devices_current_info";
+// const db_table_devices_current_info = "devices_current_info";
 const db_table_feedbacks = "feedbacks";
 
 //
@@ -94,12 +79,15 @@ io.on("connection", (socket) => {
   // console.log("ID connected: " + socket.id);
 
   setInterval(async () => {
-    let devices = await db(db_table_devices).select("*");
-    let devices_currentInfo = await db(db_table_devices_current_info).select(
-      "*"
-    );
-    let mergedDevices = mergeDeviceArrays(devices, devices_currentInfo);
-    socket.emit("request_data", mergedDevices);
+    let registered_devices = await db(db_table_devices).select("*").where({
+      is_registered: true,
+    });
+    // let unregistered_devices = await db(db_table_devices_current_info)
+    //   .select("*")
+    //   .where({
+    //     is_registered: false,
+    //   });
+    socket.emit("request_data", registered_devices);
   }, 4000);
 });
 
@@ -271,76 +259,6 @@ app.post("/verify-user-upon-entering", isUserAuthorized, async (req, res) => {
   });
 });
 
-app.post("/register-new-device", isUserAuthorized, async (req, res) => {
-  const { uniqueID, lat, lng, binHeight } = req.body;
-
-  var myDate = new Date();
-
-  db(db_table_devices)
-    .returning("*")
-    .insert({
-      unique_id: uniqueID,
-      lat,
-      lng,
-    })
-    .then((data) => {
-      if (!data.length) {
-        res.json({
-          status: 0,
-          msg: "Unable to register new device",
-        });
-      } else {
-        db(db_table_devices_current_info)
-          .returning("*")
-          .insert({
-            unique_id: uniqueID,
-            battery: 100,
-            level: 0,
-            binHeight,
-          })
-          .then(async (data) => {
-            if (!data.length) {
-              res.json({
-                status: 0,
-                msg: "Unable to register new device",
-              });
-            } else {
-              let devices = await db(db_table_devices).select("*");
-              let devices_currentInfo = await db(
-                db_table_devices_current_info
-              ).select("*");
-              let mergedDevices = mergeDeviceArrays(
-                devices,
-                devices_currentInfo
-              );
-
-              res.json({
-                status: 1,
-                msg: "The device has been registered successfully",
-                allDevices: mergedDevices,
-              });
-            }
-          });
-      }
-    })
-    .catch((e) => {
-      res.json({
-        status: 0,
-        msg: "Unable to register new device",
-      });
-    });
-});
-
-app.post("/get-devices", isUserAuthorized, async (req, res) => {
-  let devices = await db(db_table_devices).select("*");
-  let devices_currentInfo = await db(db_table_devices_current_info).select("*");
-  let mergedDevices = mergeDeviceArrays(devices, devices_currentInfo);
-  res.json({
-    status: 1,
-    devices: mergedDevices,
-  });
-});
-
 app.post("/add-feedback", isUserAuthorized, async (req, res) => {
   const { uniqueID, title, description } = req.body;
   let userFound = await db(db_table_employees).select("*").where({
@@ -389,67 +307,240 @@ app.post("/get-feedbacks", isUserAuthorized, async (req, res) => {
   });
 });
 
-// testing
-app.post("/bin-update", async (req, res) => {
-  const { deviceID, measuredLevel, measuredBattery } = req.body;
+app.post("/get-devices", isUserAuthorized, async (req, res) => {
+  let devices = await db(db_table_devices)
+    .select("*")
+    .where({ is_registered: true });
 
-  db(db_table_devices_current_info)
-    .returning("*")
-    .update({
-      battery: measuredBattery,
-      level: measuredLevel,
-      last_updated: new Date().toLocaleString(),
-    })
-    .where({
-      unique_id: deviceID,
-    })
-    .then((data) => {
-      res.json({
-        msg: "all devices returned",
-        devices: data,
-      });
-    });
+  res.json({
+    status: 1,
+    devices,
+  });
 });
 
-// testing
-app.post("/temporary-change-device-values", (req, res) => {
-  const { binToUpdate } = req.body;
+app.post("/get-unknown-devices", isUserAuthorized, async (req, res) => {
+  let unknown_devices = await db(db_table_devices)
+    .select("*")
+    .where({ is_registered: false });
 
-  db(db_table_devices_current_info)
-    .returning("*")
-    .update({
-      battery: binToUpdate.measuredBattery,
-      level: binToUpdate.measuredLevel,
-      last_updated: new Date().toLocaleString(),
-    })
-    .where({
-      unique_id: binToUpdate.deviceID,
-    })
-    .then((data) => {
-      if (!data.length) {
-        res.json({
-          status: 0,
-          msg: "Unable to update",
-        });
-      } else {
+  res.json({
+    status: 1,
+    unknown_devices,
+  });
+});
+
+app.post("/hardware-update-bin", async (req, res) => {
+  const { deviceID, battery, level, reception } = req.body;
+
+  let foundDevicesByID = await db(db_table_devices)
+    .select("*")
+    .where({ unique_id: deviceID });
+
+  if (!foundDevicesByID.length) {
+    db(db_table_devices)
+      .returning("*")
+      .insert({
+        unique_id: deviceID,
+        battery,
+        level,
+        reception,
+        is_registered: false,
+      })
+      .then((data) => {
         res.json({
           status: 1,
-          msg: "Updated Successfully",
+          msg: "Inserted into the database",
         });
-      }
-    });
+      });
+  } else {
+    db(db_table_devices)
+      .returning("*")
+      .update({
+        battery,
+        level,
+        reception,
+      })
+      .where({
+        unique_id: deviceID,
+      })
+      .then((data) => {
+        res.json({
+          status: 1,
+          msg: "Updated the database",
+        });
+      });
+  }
 });
+
+app.post(
+  "/employee-register-unknown-bin",
+  isUserAuthorized,
+  async (req, res) => {
+    const { id, lat, lng, bin_height } = req.body;
+
+    db(db_table_devices)
+      .returning("*")
+      .update({
+        is_registered: true,
+        lat,
+        lng,
+        bin_height,
+      })
+      .where({
+        id,
+      })
+      .then((data) => {
+        if (!data.length) {
+          res.json({
+            status: 0,
+            msg: "Was unable to register the device",
+          });
+        } else {
+          res.json({
+            status: 1,
+            msg: "Device registered Successfully",
+          });
+        }
+      });
+  }
+);
 
 const PORT_number = process.env.PORT || 3000;
 server.listen(PORT_number, () => {
   console.log(`listening to port ${PORT_number}`);
 });
 
+//
+//
+// NOT NEEDED
+//
+//
+// app.post("/register-new-device", isUserAuthorized, async (req, res) => {
+//   const { uniqueID, lat, lng, binHeight } = req.body;
+
+//   var myDate = new Date();
+
+//   db(db_table_devices)
+//     .returning("*")
+//     .insert({
+//       unique_id: uniqueID,
+//       lat,
+//       lng,
+//     })
+//     .then((data) => {
+//       if (!data.length) {
+//         res.json({
+//           status: 0,
+//           msg: "Unable to register new device",
+//         });
+//       } else {
+//         db(db_table_devices_current_info)
+//           .returning("*")
+//           .insert({
+//             unique_id: uniqueID,
+//             battery: 100,
+//             level: 0,
+//             binHeight,
+//           })
+//           .then(async (data) => {
+//             if (!data.length) {
+//               res.json({
+//                 status: 0,
+//                 msg: "Unable to register new device",
+//               });
+//             } else {
+//               let devices = await db(db_table_devices).select("*");
+//               let devices_currentInfo = await db(
+//                 db_table_devices_current_info
+//               ).select("*");
+//               let mergedDevices = mergeDeviceArrays(
+//                 devices,
+//                 devices_currentInfo
+//               );
+
+//               res.json({
+//                 status: 1,
+//                 msg: "The device has been registered successfully",
+//                 allDevices: mergedDevices,
+//               });
+//             }
+//           });
+//       }
+//     })
+//     .catch((e) => {
+//       res.json({
+//         status: 0,
+//         msg: "Unable to register new device",
+//       });
+//     });
+// });
+
+// app.post("/get-devices", isUserAuthorized, async (req, res) => {
+//   let devices = await db(db_table_devices).select("*");
+//   let devices_currentInfo = await db(db_table_devices_current_info).select("*");
+//   let mergedDevices = mergeDeviceArrays(devices, devices_currentInfo);
+//   res.json({
+//     status: 1,
+//     devices: mergedDevices,
+//   });
+// });
+
+// app.post("/bin-update", async (req, res) => {
+//   const { deviceID, measuredLevel, measuredBattery } = req.body;
+
+//   db(db_table_devices_current_info)
+//     .returning("*")
+//     .update({
+//       battery: measuredBattery,
+//       level: measuredLevel,
+//       last_updated: new Date().toLocaleString(),
+//     })
+//     .where({
+//       unique_id: deviceID,
+//     })
+//     .then((data) => {
+//       res.json({
+//         msg: "all devices returned",
+//         devices: data,
+//       });
+//     });
+// });
+
+// app.post("/temporary-change-device-values", (req, res) => {
+//   const { binToUpdate } = req.body;
+
+//   db(db_table_devices_current_info)
+//     .returning("*")
+//     .update({
+//       battery: binToUpdate.measuredBattery,
+//       level: binToUpdate.measuredLevel,
+//       last_updated: new Date().toLocaleString(),
+//     })
+//     .where({
+//       unique_id: binToUpdate.deviceID,
+//     })
+//     .then((data) => {
+//       if (!data.length) {
+//         res.json({
+//           status: 0,
+//           msg: "Unable to update",
+//         });
+//       } else {
+//         res.json({
+//           status: 1,
+//           msg: "Updated Successfully",
+//         });
+//       }
+//     });
+// });
+
+//
 // helper functions
-const mergeDeviceArrays = (array1, array2) => {
-  const mergedArray = array1.map((obj1) => {
-    const obj2 = array2.find((obj2) => obj2.unique_id === obj1.unique_id);
-    return { ...obj1, ...obj2 };
-  });
-  return mergedArray;
-};
+//
+// const mergeDeviceArrays = (array1, array2) => {
+//   const mergedArray = array1.map((obj1) => {
+//     const obj2 = array2.find((obj2) => obj2.unique_id === obj1.unique_id);
+//     return { ...obj1, ...obj2 };
+//   });
+//   return mergedArray;
+// };
