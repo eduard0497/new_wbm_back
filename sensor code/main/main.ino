@@ -66,6 +66,9 @@ void setup() {
   display.init();
   display.setTextAlignment(TEXT_ALIGN_LEFT);
   display.setFont(ArialMT_Plain_10);
+  display.clear();
+  display.drawString(0, 0, "Init Sensor...");
+  display.display();
 
   if (ACTIVE_REGION==LORAMAC_REGION_US915) {
     //TTN uses sub-band 2 in AU915
