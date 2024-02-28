@@ -365,6 +365,7 @@ app.post("/hardware-update-bin", async (req, res) => {
         battery,
         level,
         reception,
+        timestamp: new Date(),
       })
       .where({
         unique_id: deviceID,
