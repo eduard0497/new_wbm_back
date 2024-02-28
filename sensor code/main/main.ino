@@ -4,6 +4,8 @@
 #include <NewPing.h>
 #include <Wire.h>               
 #include "HT_SH1107Wire.h"
+//comment this out to disable debug
+#define DEBUG
 
 /*
  * set LoraWan_RGB to Active,the RGB active in loraWan
@@ -32,8 +34,9 @@ static uint8_t counter=0;
 //new sonar object with trigger, echo, and max dist (200cm)
 NewPing sonar(TRIG_PIN, ECHO_PIN, 200);
 //display object for debug display
+#ifdef DEBUG
 SH1107Wire  display(0x3c, 500000, SDA, SCL ,GEOMETRY_128_64,GPIO10); // addr, freq, sda, scl, resolution, rst
-
+#endif
 
 ///////////////////////////////////////////////////
 //Some utilities for going into low power mode
@@ -63,12 +66,14 @@ void setup() {
   //activate serial
 	Serial.begin(115200);
   //activate display (most likely debug only)
+  #ifdef DEBUG
   display.init();
   display.setTextAlignment(TEXT_ALIGN_LEFT);
   display.setFont(ArialMT_Plain_10);
   display.clear();
   display.drawString(0, 0, "Init Sensor...");
   display.display();
+  #endif
 
   if (ACTIVE_REGION==LORAMAC_REGION_US915) {
     //TTN uses sub-band 2 in AU915
@@ -80,19 +85,19 @@ void setup() {
   //Enable ADR
   LoRaWAN.setAdaptiveDR(true);
 
-  // while (1) {
-  //   Serial.print("Joining... ");
-  //   LoRaWAN.joinOTAA(appEui, appKey, devEui);
-  //   if (!LoRaWAN.isJoined()) {
-  //     //In this example we just loop until we're joined, but you could
-  //     //also go and start doing other things and try again later
-  //     Serial.println("JOIN FAILED! Sleeping for 30 seconds");
-  //     lowPowerSleep(30000);
-  //   } else {
-  //     Serial.println("JOINED");
-  //     break;
-  //   }
-  // }
+  while (1) {
+    Serial.print("Joining... ");
+    LoRaWAN.joinOTAA(appEui, appKey, devEui);
+    if (!LoRaWAN.isJoined()) {
+      //In this example we just loop until we're joined, but you could
+      //also go and start doing other things and try again later
+      Serial.println("JOIN FAILED! Sleeping for 30 seconds");
+      lowPowerSleep(30000);
+    } else {
+      Serial.println("JOINED");
+      break;
+    }
+  }
 }
 
 ///////////////////////////////////////////////////
@@ -137,10 +142,12 @@ void loop()
   Serial.print(message);
   Serial.println(result);
 
+  #ifdef DEBUG
   display.clear();
   display.drawString(0, 0, message);
   display.drawString(0, 10, result);
   display.display();
+  #endif
 }
 
 ///////////////////////////////////////////////////
