@@ -351,6 +351,12 @@ app.post("/hardware-update-bin", async (req, res) => {
           status: 1,
           msg: "Inserted into the database",
         });
+      })
+      .catch((e) => {
+        res.json({
+          status: 0,
+          msg: "Error while adding the unknown device",
+        });
       });
   } else {
     db(db_table_devices)
@@ -359,6 +365,7 @@ app.post("/hardware-update-bin", async (req, res) => {
         battery,
         level,
         reception,
+        timestamp: new Date(),
       })
       .where({
         unique_id: deviceID,
@@ -367,6 +374,12 @@ app.post("/hardware-update-bin", async (req, res) => {
         res.json({
           status: 1,
           msg: "Updated the database",
+        });
+      })
+      .catch((e) => {
+        res.json({
+          status: 0,
+          msg: "Error while updating current info",
         });
       });
   }
