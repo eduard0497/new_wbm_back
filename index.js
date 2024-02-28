@@ -91,6 +91,27 @@ io.on("connection", (socket) => {
   }, 4000);
 });
 
+app.get("/generate-mock-data", (req, res) => {
+  db(db_table_devices)
+    .returning("*")
+    .insert({
+      unique_id: 256,
+      battery: 90,
+      level: 87,
+      reception: 100,
+      is_registered: false,
+    })
+    .then((data) => {
+      res.json({
+        status: 1,
+        msg: "Inserted into the database",
+      });
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+});
+
 app.post("/register_admin", async (req, res) => {
   const { fname, lname, email, password, start_date } = req.body;
   let hashedPassword = await bcrypt.hash(password, 10);
