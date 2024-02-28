@@ -88,7 +88,7 @@ io.on("connection", (socket) => {
     //     is_registered: false,
     //   });
     socket.emit("request_data", registered_devices);
-  }, 4000);
+  }, 7000);
 });
 
 app.get("/generate-mock-data", (req, res) => {
