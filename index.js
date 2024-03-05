@@ -14,10 +14,10 @@ app.use(cookieParser());
 const corsOptions = {
   origin: [
     process.env.FRONT_END_DOMAIN,
-    "10.42.0.1",
-    "10.40.36.118",
-    "172.17.0.1",
-    "192.168.208.1",
+    // "10.42.0.1",
+    // "10.40.36.118",
+    // "172.17.0.1",
+    // "192.168.208.1",
   ],
   credentials: true,
 };
@@ -88,28 +88,37 @@ io.on("connection", (socket) => {
     //     is_registered: false,
     //   });
     socket.emit("request_data", registered_devices);
-  }, 7000);
+  }, 10000);
 });
 
 app.get("/generate-mock-data", (req, res) => {
   db(db_table_devices)
-    .returning("*")
-    .insert({
-      unique_id: 256,
-      battery: 90,
-      level: 87,
-      reception: 100,
-      is_registered: false,
-    })
-    .then((data) => {
-      res.json({
-        status: 1,
-        msg: "Inserted into the database",
-      });
+    .update({
+      bin_height: 70,
+      level: 40,
     })
     .catch((e) => {
       console.log(e);
     });
+  res.json("DONE");
+  // db(db_table_devices)
+  //   .returning("*")
+  //   .insert({
+  //     unique_id: 256,
+  //     battery: 90,
+  //     level: 87,
+  //     reception: 100,
+  //     is_registered: false,
+  //   })
+  //   .then((data) => {
+  //     res.json({
+  //       status: 1,
+  //       msg: "Inserted into the database",
+  //     });
+  //   })
+  //   .catch((e) => {
+  //     console.log(e);
+  //   });
 });
 
 app.post("/register_admin", async (req, res) => {
