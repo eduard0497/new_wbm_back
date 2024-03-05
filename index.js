@@ -358,7 +358,8 @@ app.post("/get-feedbacks", isUserAuthorized, async (req, res) => {
 app.post("/get-devices", isUserAuthorized, async (req, res) => {
   let devices = await db(db_table_devices)
     .select("*")
-    .where({ is_registered: true });
+    .where({ is_registered: true })
+    .orderBy("unique_id");
 
   res.json({
     status: 1,
