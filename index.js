@@ -88,9 +88,12 @@ io.on("connection", (socket) => {
   // console.log("ID connected: " + socket.id);
 
   setInterval(async () => {
-    let registered_devices = await db(db_table_devices).select("*").where({
-      is_registered: true,
-    });
+    let registered_devices = await db(db_table_devices)
+      .select("*")
+      .where({
+        is_registered: true,
+      })
+      .orderBy("unique_id");
     // let unregistered_devices = await db(db_table_devices_current_info)
     //   .select("*")
     //   .where({
@@ -105,9 +108,13 @@ app.get("/generate-mock-data", (req, res) => {
   db(db_table_devices)
     .update({
       // bin_height: 100,
-      // level: 50,
-      battery: 77,
+      // level: 5,
+      // battery: 5,
+      reception: 100,
     })
+    // .where({
+    //   unique_id: 300,
+    // })
     .catch((e) => {
       console.log(e);
     });
