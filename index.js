@@ -1,4 +1,3 @@
-// const _FRONT_END_DOMAIN = ""
 const http = require("http");
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -91,11 +90,13 @@ io.on("connection", (socket) => {
   }, 10000);
 });
 
+// to be deleted later
 app.get("/generate-mock-data", (req, res) => {
   db(db_table_devices)
     .update({
-      bin_height: 70,
-      level: 40,
+      // bin_height: 100,
+      // level: 50,
+      battery: 77,
     })
     .catch((e) => {
       console.log(e);
@@ -452,138 +453,3 @@ const PORT_number = process.env.PORT || 3000;
 server.listen(PORT_number, () => {
   console.log(`listening to port ${PORT_number}`);
 });
-
-//
-//
-// NOT NEEDED
-//
-//
-// app.post("/register-new-device", isUserAuthorized, async (req, res) => {
-//   const { uniqueID, lat, lng, binHeight } = req.body;
-
-//   var myDate = new Date();
-
-//   db(db_table_devices)
-//     .returning("*")
-//     .insert({
-//       unique_id: uniqueID,
-//       lat,
-//       lng,
-//     })
-//     .then((data) => {
-//       if (!data.length) {
-//         res.json({
-//           status: 0,
-//           msg: "Unable to register new device",
-//         });
-//       } else {
-//         db(db_table_devices_current_info)
-//           .returning("*")
-//           .insert({
-//             unique_id: uniqueID,
-//             battery: 100,
-//             level: 0,
-//             binHeight,
-//           })
-//           .then(async (data) => {
-//             if (!data.length) {
-//               res.json({
-//                 status: 0,
-//                 msg: "Unable to register new device",
-//               });
-//             } else {
-//               let devices = await db(db_table_devices).select("*");
-//               let devices_currentInfo = await db(
-//                 db_table_devices_current_info
-//               ).select("*");
-//               let mergedDevices = mergeDeviceArrays(
-//                 devices,
-//                 devices_currentInfo
-//               );
-
-//               res.json({
-//                 status: 1,
-//                 msg: "The device has been registered successfully",
-//                 allDevices: mergedDevices,
-//               });
-//             }
-//           });
-//       }
-//     })
-//     .catch((e) => {
-//       res.json({
-//         status: 0,
-//         msg: "Unable to register new device",
-//       });
-//     });
-// });
-
-// app.post("/get-devices", isUserAuthorized, async (req, res) => {
-//   let devices = await db(db_table_devices).select("*");
-//   let devices_currentInfo = await db(db_table_devices_current_info).select("*");
-//   let mergedDevices = mergeDeviceArrays(devices, devices_currentInfo);
-//   res.json({
-//     status: 1,
-//     devices: mergedDevices,
-//   });
-// });
-
-// app.post("/bin-update", async (req, res) => {
-//   const { deviceID, measuredLevel, measuredBattery } = req.body;
-
-//   db(db_table_devices_current_info)
-//     .returning("*")
-//     .update({
-//       battery: measuredBattery,
-//       level: measuredLevel,
-//       last_updated: new Date().toLocaleString(),
-//     })
-//     .where({
-//       unique_id: deviceID,
-//     })
-//     .then((data) => {
-//       res.json({
-//         msg: "all devices returned",
-//         devices: data,
-//       });
-//     });
-// });
-
-// app.post("/temporary-change-device-values", (req, res) => {
-//   const { binToUpdate } = req.body;
-
-//   db(db_table_devices_current_info)
-//     .returning("*")
-//     .update({
-//       battery: binToUpdate.measuredBattery,
-//       level: binToUpdate.measuredLevel,
-//       last_updated: new Date().toLocaleString(),
-//     })
-//     .where({
-//       unique_id: binToUpdate.deviceID,
-//     })
-//     .then((data) => {
-//       if (!data.length) {
-//         res.json({
-//           status: 0,
-//           msg: "Unable to update",
-//         });
-//       } else {
-//         res.json({
-//           status: 1,
-//           msg: "Updated Successfully",
-//         });
-//       }
-//     });
-// });
-
-//
-// helper functions
-//
-// const mergeDeviceArrays = (array1, array2) => {
-//   const mergedArray = array1.map((obj1) => {
-//     const obj2 = array2.find((obj2) => obj2.unique_id === obj1.unique_id);
-//     return { ...obj1, ...obj2 };
-//   });
-//   return mergedArray;
-// };
