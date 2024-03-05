@@ -10,16 +10,26 @@ require("dotenv").config();
 const app = express();
 app.use(cookieParser());
 
-const corsOptions = {
-  origin: [
-    process.env.FRONT_END_DOMAIN,
-    // "10.42.0.1",
-    // "10.40.36.118",
-    // "172.17.0.1",
-    // "192.168.208.1",
-  ],
-  credentials: true,
-};
+const corsOptions =
+  process.env.RECEIVE_SENSOR_DATA == 1
+    ? {
+        origin: [
+          process.env.FRONT_END_DOMAIN,
+          "10.42.0.1",
+          "10.40.36.118",
+          "172.17.0.1",
+          "192.168.208.1",
+        ],
+        credentials: true,
+      }
+    : {
+        origin: [process.env.FRONT_END_DOMAIN],
+        credentials: true,
+      };
+
+console.log("Cors Options");
+console.log(corsOptions);
+
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
