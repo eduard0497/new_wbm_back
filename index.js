@@ -102,23 +102,28 @@ io.on("connection", (socket) => {
     socket.emit("request_data", registered_devices);
   }, 10000);
 });
-
+//
 // to be deleted later
 app.get("/generate-mock-data", (req, res) => {
   db(db_table_devices)
     .update({
+      lat: "34.23678141381739",
+      lng: "-118.52769847593443",
       // bin_height: 100,
       // level: 5,
       // battery: 5,
-      reception: 100,
+      // reception: 100,
     })
-    // .where({
-    //   unique_id: 300,
-    // })
+    .where({
+      unique_id: 300,
+    })
     .catch((e) => {
       console.log(e);
     });
-  res.json("DONE");
+  //
+  //
+  //
+  //
   // db(db_table_devices)
   //   .returning("*")
   //   .insert({
@@ -137,6 +142,7 @@ app.get("/generate-mock-data", (req, res) => {
   //   .catch((e) => {
   //     console.log(e);
   //   });
+  res.json("DONE");
 });
 
 app.post("/register_admin", async (req, res) => {
