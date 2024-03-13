@@ -103,46 +103,111 @@ io.on("connection", (socket) => {
   }, 10000);
 });
 //
+//
+//
+//
 // to be deleted later
-app.get("/generate-mock-data", (req, res) => {
+app.get("/mock_get-devices", async (req, res) => {
+  let devices = await db(db_table_devices).select("*").orderBy("unique_id");
+
+  res.json({
+    devices,
+  });
+});
+
+app.post("/mock_update-values", async (req, res) => {
+  const {
+    id,
+    unique_id,
+    bin_height,
+    level,
+    battery,
+    reception,
+    lat,
+    lng,
+    is_registered,
+  } = req.body;
+
   db(db_table_devices)
+    .returning("*")
     .update({
-      lat: "34.23678141381739",
-      lng: "-118.52769847593443",
-      // bin_height: 100,
-      // level: 5,
-      // battery: 5,
-      // reception: 100,
+      unique_id,
+      bin_height,
+      level,
+      battery,
+      reception,
+      lat,
+      lng,
+      is_registered,
     })
     .where({
-      unique_id: 300,
+      id,
+    })
+    .then((data) => {
+      if (!data.length) {
+        res.json({
+          status: 0,
+          msg: "Error occured",
+        });
+      } else {
+        res.json({
+          status: 1,
+          msg: "Updated the database",
+        });
+      }
     })
     .catch((e) => {
-      console.log(e);
+      res.json({
+        status: 0,
+        msg: "Error while updating current info",
+      });
     });
-  //
-  //
-  //
-  //
-  // db(db_table_devices)
-  //   .returning("*")
-  //   .insert({
-  //     unique_id: 256,
-  //     battery: 90,
-  //     level: 87,
-  //     reception: 100,
-  //     is_registered: false,
-  //   })
-  //   .then((data) => {
-  //     res.json({
-  //       status: 1,
-  //       msg: "Inserted into the database",
-  //     });
-  //   })
-  //   .catch((e) => {
-  //     console.log(e);
-  //   });
-  res.json("DONE");
+});
+
+app.post("/mock_add-device", async (req, res) => {
+  const {
+    unique_id,
+    bin_height,
+    level,
+    battery,
+    reception,
+    lat,
+    lng,
+    is_registered,
+  } = req.body;
+
+  db(db_table_devices)
+    .returning("*")
+    .insert({
+      unique_id,
+      bin_height,
+      level,
+      battery,
+      reception,
+      lat,
+      lng,
+      is_registered,
+      timestamp: new Date(),
+    })
+    .then((data) => {
+      if (!data.length) {
+        res.json({
+          status: 0,
+          msg: "Error occured",
+        });
+      } else {
+        res.json({
+          status: 1,
+          msg: "Added to the database",
+        });
+      }
+    })
+    .catch((e) => {
+      res.json({
+        status: 0,
+        msg: "Error while adding a device",
+      });
+    });
 });
 
 app.post("/register_admin", async (req, res) => {
