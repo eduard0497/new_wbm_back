@@ -78,6 +78,7 @@ const db_table_employees = "employees";
 const db_table_devices = "devices";
 // const db_table_devices_current_info = "devices_current_info";
 const db_table_feedbacks = "feedbacks";
+const db_table_routes = "routes";
 
 //
 //
@@ -100,7 +101,7 @@ io.on("connection", (socket) => {
     //     is_registered: false,
     //   });
     socket.emit("request_data", registered_devices);
-  }, 10000);
+  }, 5000);
 });
 //
 //
@@ -537,6 +538,164 @@ app.post(
       });
   }
 );
+
+app.post("/create-route", isUserAuthorized, async (req, res) => {
+  const { route, whatToDo } = req.body;
+
+  // let employee = await db(db_table_employees).select("*").where({
+  //   id: req.cookies["user_id"],
+  // });
+  // const { id, fname, lname } = employee[0];
+
+  const devicesToInsert = route.map(({ unique_id }) => unique_id);
+
+  db(db_table_routes)
+    .returning("*")
+    .insert({
+      employeeid: req.cookies["user_id"],
+      deviceids: devicesToInsert,
+      emptybin: whatToDo.emptyBin,
+      changebattery: whatToDo.changeBattery,
+      status: "pending",
+      timestamp: new Date().toLocaleString("en-US", {
+        timeZone: "America/Los_Angeles",
+      }),
+    })
+    .then((data) => {
+      if (!data.length) {
+        res.json({
+          status: 0,
+          msg: "Unable to Create the route",
+        });
+      } else {
+        res.json({
+          status: 1,
+          msg: "The route has been created",
+        });
+      }
+    })
+    .catch((e) => {
+      console.log(e);
+      res.json({
+        status: 0,
+        msg: "Unable to Create the route",
+      });
+    });
+});
+
+app.post("/get-routes", isUserAuthorized, async (req, res) => {
+  let routes = await db(db_table_routes)
+    .select("routes.*", "employees.fname", "employees.lname")
+    .innerJoin("employees", "routes.employeeid", "employees.id");
+
+  res.json({
+    status: 1,
+    routes,
+  });
+});
+
+app.post("/start-route", isUserAuthorized, async (req, res) => {
+  const { id } = req.body;
+
+  db(db_table_routes)
+    .returning("*")
+    .update({
+      status: "started",
+      started: new Date().toLocaleString("en-US", {
+        timeZone: "America/Los_Angeles",
+      }),
+    })
+    .where({
+      id,
+    })
+    .then((data) => {
+      if (!data.length) {
+        res.json({
+          status: 0,
+          msg: "Unable to start the route",
+        });
+      } else {
+        res.json({
+          status: 1,
+          msg: "The route has been added",
+        });
+      }
+    })
+    .catch((e) => {
+      console.log(e);
+      res.json({
+        status: 0,
+        msg: "Unable to start the route",
+      });
+    });
+});
+
+app.post("/finish-route", isUserAuthorized, async (req, res) => {
+  const { id } = req.body;
+
+  db(db_table_routes)
+    .returning("*")
+    .update({
+      status: "finished",
+      finished: new Date().toLocaleString("en-US", {
+        timeZone: "America/Los_Angeles",
+      }),
+    })
+    .where({
+      id,
+    })
+    .then((data) => {
+      if (!data.length) {
+        res.json({
+          status: 0,
+          msg: "Unable to complete the route",
+        });
+      } else {
+        res.json({
+          status: 1,
+          msg: "The route has been completed",
+        });
+      }
+    })
+    .catch((e) => {
+      console.log(e);
+      res.json({
+        status: 0,
+        msg: "Unable to complete the route",
+      });
+    });
+});
+
+app.post("/delete-route", isUserAuthorized, async (req, res) => {
+  const { id } = req.body;
+
+  db(db_table_routes)
+    .returning("*")
+    .del()
+    .where({
+      id,
+    })
+    .then((data) => {
+      if (!data.length) {
+        res.json({
+          status: 0,
+          msg: "Unable to delete the route",
+        });
+      } else {
+        res.json({
+          status: 1,
+          msg: "The route has been deleted",
+        });
+      }
+    })
+    .catch((e) => {
+      console.log(e);
+      res.json({
+        status: 0,
+        msg: "Unable to delete the route",
+      });
+    });
+});
 
 const PORT_number = process.env.PORT || 3000;
 server.listen(PORT_number, () => {
