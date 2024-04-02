@@ -101,7 +101,7 @@ io.on("connection", (socket) => {
     //     is_registered: false,
     //   });
     socket.emit("request_data", registered_devices);
-  }, 5000);
+  }, 10000);
 });
 //
 //
