@@ -79,6 +79,7 @@ const db_table_devices = "devices";
 // const db_table_devices_current_info = "devices_current_info";
 const db_table_feedbacks = "feedbacks";
 const db_table_routes = "routes";
+const db_table_historical = "historical";
 
 //
 //
@@ -697,7 +698,94 @@ app.post("/delete-route", isUserAuthorized, async (req, res) => {
     });
 });
 
+app.post("/get-historical", isUserAuthorized, async (req, res) => {
+  const { startDate, endDate } = req.body;
+
+  if (!startDate || !endDate) {
+    const endDay = new Date();
+    const startDay = new Date(
+      endDay.getFullYear(),
+      endDay.getMonth(),
+      endDay.getDate() - 28
+    );
+    db(db_table_historical)
+      .select("*")
+      .whereBetween("saved_time", [startDay, endDay])
+      .then((data) => {
+        const result = calculateWeeklyMedian(data);
+
+        res.json({
+          status: 1,
+          historicalData: result,
+        });
+      });
+  } else {
+    const startDay = new Date(startDate);
+    const endDay = new Date(endDate);
+    db(db_table_historical)
+      .select("*")
+      .whereBetween("saved_time", [startDay, endDay])
+      .then((data) => {
+        const result = calculateWeeklyMedian(data);
+
+        res.json({
+          status: 1,
+          historicalData: result,
+        });
+      });
+  }
+});
+
 const PORT_number = process.env.PORT || 3000;
 server.listen(PORT_number, () => {
   console.log(`listening to port ${PORT_number}`);
 });
+
+function calculateWeeklyMedian(data) {
+  // Group the data by unique_id
+  const groupedById = {};
+  data.forEach((entry) => {
+    const uniqueId = entry.unique_id;
+    if (!groupedById[uniqueId]) {
+      groupedById[uniqueId] = {};
+    }
+    const savedTime = new Date(entry.saved_time);
+    const weekNumber = savedTime.getWeek();
+    if (!groupedById[uniqueId][weekNumber]) {
+      groupedById[uniqueId][weekNumber] = [];
+    }
+    groupedById[uniqueId][weekNumber].push(entry.level_in_percents);
+  });
+
+  // Calculate the median for each week for each unique_id
+  const result = [];
+  for (const uniqueId in groupedById) {
+    for (const weekNumber in groupedById[uniqueId]) {
+      const levels = groupedById[uniqueId][weekNumber];
+      const median = calculateMedian(levels);
+      result.push({
+        unique_id: parseInt(uniqueId),
+        week_number: parseInt(weekNumber),
+        level_in_percents: median,
+      });
+    }
+  }
+
+  return result;
+}
+
+function calculateMedian(array) {
+  const sortedArray = array.sort((a, b) => a - b);
+  const mid = Math.floor(sortedArray.length / 2);
+  if (sortedArray.length % 2 === 0) {
+    return (sortedArray[mid - 1] + sortedArray[mid]) / 2;
+  } else {
+    return sortedArray[mid];
+  }
+}
+
+// Function to get week number of a date
+Date.prototype.getWeek = function () {
+  const onejan = new Date(this.getFullYear(), 0, 1);
+  return Math.ceil(((this - onejan) / 86400000 + onejan.getDay() + 1) / 7);
+};
