@@ -7,6 +7,12 @@
 //comment this out to disable debug
 #define DEBUG
 
+//define echo and trig pin remember:
+//echO = One
+//Trig = Two
+#define ECHO_PIN GPIO1
+#define TRIG_PIN GPIO2
+
 /*
  * set LoraWan_RGB to Active,the RGB active in loraWan
  * RGB red means sending;
@@ -21,15 +27,14 @@ static uint8_t devEui[] = { 0x0e, 0xe6, 0x82, 0xe9, 0x8d, 0xd5, 0x68, 0xec };
 static uint8_t appEui[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 static uint8_t appKey[] = { 0xf6, 0xe9, 0x2e, 0x34, 0x1a, 0x36, 0x60, 0x80, 0xe1, 0x5c, 0x08, 0xdc, 0xe0, 0x5d, 0xd8, 0x39 };
 
-uint16_t userChannelsMask[6]={ 0x00FF,0x0000,0x0000,0x0000,0x0000,0x0000 };
+uint16_t userChannelsMask[6] = { 0x00FF,0x0000,0x0000,0x0000,0x0000,0x0000 };
 
-static uint8_t counter=0;
+//counter for tracking sent packets
+static uint8_t counter = 0;
 
-//define echo and trig pin remember:
-//echO = One
-//Trig = Two
-#define ECHO_PIN GPIO1
-#define TRIG_PIN GPIO2
+//min and max recorded battery voltages for caclulating percent
+float minVoltage = 2930;
+float maxVoltage = 4100;
 
 //new sonar object with trigger, echo, and max dist (200cm)
 NewPing sonar(TRIG_PIN, ECHO_PIN, 200);
@@ -111,17 +116,25 @@ void loop()
   //ping sonic sensor and record cm distance
   uint8_t dist = sonar.ping_cm();
   //ping the battery voltage
-  uint16_t voltage = getBatteryVoltage();
+  float voltage = getBatteryVoltage();
+
+  //based on 4.100v = 100% and 2.930v = 0%
+  //this calculation will produce the battery percentage
+  float percent = (voltage - minVoltage) * 100 / (maxVoltage - minVoltage);
+  uint8_t truncated = (uint8_t)percent;
 
   //bundle into a uint8_t array
-  //first byte is distance, second and third byte are the two bytes of battery voltage
-  uint8_t* voltageBytes = (uint8_t*)&voltage;
-  uint8_t data[3];
+  //first byte distance, second byte battery percentage
+  uint8_t data[2];
   data[0] = dist;
-  data[1] = voltageBytes[0];
-  data[2] = voltageBytes[1];
-  
+  data[1] = truncated;
 
+  //first byte is distance, second and third byte are the two bytes of battery voltage
+  // uint8_t* voltageBytes = (uint8_t*)&voltage;
+  // uint8_t data[3];
+  // data[0] = dist;
+  // data[1] = voltageBytes[0];
+  // data[2] = voltageBytes[1];
   
   //In this demo we use a timer to go into low power mode to kill some time.
   //You might be collecting data or doing something more interesting instead.
