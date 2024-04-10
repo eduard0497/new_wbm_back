@@ -736,6 +736,24 @@ app.post("/get-historical", isUserAuthorized, async (req, res) => {
   }
 });
 
+app.post("/get-historical-for-routes", isUserAuthorized, async (req, res) => {
+  db(db_table_historical)
+    .select("*")
+    .then((data) => {
+      res.json({
+        status: 1,
+        data,
+      });
+    })
+    .catch((e) => {
+      console.log(e);
+      res.json({
+        status: 0,
+        msg: "Error occured",
+      });
+    });
+});
+
 const PORT_number = process.env.PORT || 3000;
 server.listen(PORT_number, () => {
   console.log(`listening to port ${PORT_number}`);
