@@ -453,6 +453,8 @@ app.post("/get-unknown-devices", isUserAuthorized, async (req, res) => {
 
 app.post("/hardware-update-bin", async (req, res) => {
   const { deviceID, battery, level, reception } = req.body;
+  console.log("Pinged Device Info:");
+  console.log(req.body);
 
   let foundDevicesByID = await db(db_table_devices)
     .select("*")
