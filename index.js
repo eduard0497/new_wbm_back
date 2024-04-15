@@ -124,6 +124,7 @@ app.post("/mock_update-values", async (req, res) => {
   const {
     id,
     unique_id,
+    eui,
     bin_height,
     level,
     battery,
@@ -137,6 +138,7 @@ app.post("/mock_update-values", async (req, res) => {
     .returning("*")
     .update({
       unique_id,
+      eui,
       bin_height,
       level,
       battery,
@@ -172,6 +174,7 @@ app.post("/mock_update-values", async (req, res) => {
 app.post("/mock_add-device", async (req, res) => {
   const {
     unique_id,
+    eui,
     bin_height,
     level,
     battery,
@@ -185,6 +188,7 @@ app.post("/mock_add-device", async (req, res) => {
     .returning("*")
     .insert({
       unique_id,
+      eui,
       bin_height,
       level,
       battery,
