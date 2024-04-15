@@ -88,24 +88,37 @@ const db_table_historical = "historical";
 
 const SOCKET_INTERVAL = parseInt(process.env.SOCKET_INTERVAL);
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   console.log("ID connected: " + socket.id);
 
-  setInterval(async () => {
-    console.log("Emitting to Front End");
-    let registered_devices = await db(db_table_devices)
-      .select("*")
-      .where({
-        is_registered: true,
-      })
-      .orderBy("unique_id");
-    // let unregistered_devices = await db(db_table_devices_current_info)
-    //   .select("*")
-    //   .where({
-    //     is_registered: false,
-    //   });
-    socket.emit("request_data", registered_devices);
-  }, SOCKET_INTERVAL);
+  let registered_devices = await db(db_table_devices)
+    .select("*")
+    .where({
+      is_registered: true,
+    })
+    .orderBy("unique_id");
+  // let unregistered_devices = await db(db_table_devices_current_info)
+  //   .select("*")
+  //   .where({
+  //     is_registered: false,
+  //   });
+  socket.emit("request_data", registered_devices);
+
+  // setInterval(async () => {
+  //   console.log("Emitting to Front End");
+  //   let registered_devices = await db(db_table_devices)
+  //     .select("*")
+  //     .where({
+  //       is_registered: true,
+  //     })
+  //     .orderBy("unique_id");
+  //   // let unregistered_devices = await db(db_table_devices_current_info)
+  //   //   .select("*")
+  //   //   .where({
+  //   //     is_registered: false,
+  //   //   });
+  //   socket.emit("request_data", registered_devices);
+  // }, SOCKET_INTERVAL);
 });
 //
 //
@@ -502,6 +515,7 @@ app.post("/hardware-update-bin", async (req, res) => {
         unique_id: deviceID,
       })
       .then((data) => {
+        io.emit("new_ping", data[0]);
         res.json({
           status: 1,
           msg: "Updated the database",
