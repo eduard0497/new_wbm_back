@@ -92,6 +92,7 @@ io.on("connection", (socket) => {
   console.log("ID connected: " + socket.id);
 
   setInterval(async () => {
+    console.log("Emitting to Front End");
     let registered_devices = await db(db_table_devices)
       .select("*")
       .where({
