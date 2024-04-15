@@ -86,8 +86,10 @@ const db_table_historical = "historical";
 //
 //
 
+const SOCKET_INTERVAL = parseInt(process.env.SOCKET_INTERVAL);
+
 io.on("connection", (socket) => {
-  // console.log("ID connected: " + socket.id);
+  console.log("ID connected: " + socket.id);
 
   setInterval(async () => {
     let registered_devices = await db(db_table_devices)
@@ -102,7 +104,7 @@ io.on("connection", (socket) => {
     //     is_registered: false,
     //   });
     socket.emit("request_data", registered_devices);
-  }, 10000);
+  }, SOCKET_INTERVAL);
 });
 //
 //
