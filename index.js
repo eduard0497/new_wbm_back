@@ -473,8 +473,6 @@ app.post("/get-unknown-devices", isUserAuthorized, async (req, res) => {
 
 app.post("/hardware-update-bin", async (req, res) => {
   const { deviceID, battery, level, reception } = req.body;
-  console.log("Pinged Device Info:");
-  console.log(req.body);
 
   let foundDevicesByID = await db(db_table_devices)
     .select("*")
@@ -516,10 +514,41 @@ app.post("/hardware-update-bin", async (req, res) => {
       })
       .then((data) => {
         io.emit("new_ping", data[0]);
-        res.json({
-          status: 1,
-          msg: "Updated the database",
-        });
+        let distanceInCM = data[0].level;
+        let binHeight = data[0].bin_height;
+        let trashHeight = binHeight - distanceInCM;
+        let level_in_percents = parseInt((trashHeight * 100) / binHeight);
+        db(db_table_historical)
+          .returning("*")
+          .insert({
+            unique_id: data[0].unique_id,
+            level_in_percents: level_in_percents,
+            saved_time: new Date().toLocaleString("en-US", {
+              timeZone: "America/Los_Angeles",
+            }),
+          })
+          .then((data) => {
+            console.log("data after adding to historical:");
+            console.log(data);
+            if (!data.length) {
+              res.json({
+                status: 0,
+                msg: "Unable to insert into historical",
+              });
+            } else {
+              res.json({
+                status: 1,
+                msg: "Updated the database",
+              });
+            }
+          })
+          .catch((e) => {
+            console.log(e);
+            res.json({
+              status: 0,
+              msg: "error caught when inserting into historical",
+            });
+          });
       })
       .catch((e) => {
         res.json({
