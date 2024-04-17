@@ -526,11 +526,29 @@ app.post("/hardware-update-bin", async (req, res) => {
             saved_time: new Date().toLocaleString("en-US", {
               timeZone: "America/Los_Angeles",
             }),
+          })
+          .then((data) => {
+            console.log("data after adding to historical:");
+            console.log(data);
+            if (!data.length) {
+              res.json({
+                status: 0,
+                msg: "Unable to insert into historical",
+              });
+            } else {
+              res.json({
+                status: 1,
+                msg: "Updated the database",
+              });
+            }
+          })
+          .catch((e) => {
+            console.log(e);
+            res.json({
+              status: 0,
+              msg: "error caught when inserting into historical",
+            });
           });
-        res.json({
-          status: 1,
-          msg: "Updated the database",
-        });
       })
       .catch((e) => {
         res.json({
