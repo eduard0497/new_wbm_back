@@ -473,8 +473,6 @@ app.post("/get-unknown-devices", isUserAuthorized, async (req, res) => {
 
 app.post("/hardware-update-bin", async (req, res) => {
   const { deviceID, battery, level, reception } = req.body;
-  console.log("Pinged Device Info:");
-  console.log(req.body);
 
   let foundDevicesByID = await db(db_table_devices)
     .select("*")
@@ -515,6 +513,8 @@ app.post("/hardware-update-bin", async (req, res) => {
         unique_id: deviceID,
       })
       .then((data) => {
+        console.log("Device Info emitted to front");
+        console.log(data[0]);
         io.emit("new_ping", data[0]);
         res.json({
           status: 1,
