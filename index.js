@@ -513,9 +513,20 @@ app.post("/hardware-update-bin", async (req, res) => {
         unique_id: deviceID,
       })
       .then((data) => {
-        console.log("Device Info emitted to front");
-        console.log(data[0]);
         io.emit("new_ping", data[0]);
+        let distanceInCM = data[0].level;
+        let binHeight = data[0].bin_height;
+        let trashHeight = binHeight - distanceInCM;
+        let level_in_percents = parseInt((trashHeight * 100) / binHeight);
+        db(db_table_historical)
+          .returning("*")
+          .insert({
+            unique_id: data[0].unique_id,
+            level_in_percents: level_in_percents,
+            saved_time: new Date().toLocaleString("en-US", {
+              timeZone: "America/Los_Angeles",
+            }),
+          });
         res.json({
           status: 1,
           msg: "Updated the database",
