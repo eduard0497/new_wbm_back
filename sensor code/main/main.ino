@@ -14,16 +14,19 @@ static uint8_t appKey[] = { 0xf6, 0xe9, 0x2e, 0x34, 0x1a, 0x36, 0x60, 0x80, 0xe1
 
 uint16_t userChannelsMask[6] = { 0x00FF, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 };
 
-unsigned long distance_long = 0;
+//variable data
 uint8_t distance = 0;
 uint8_t batteryLevel = 0;
 
 unsigned long globalSleepTime = 15000;
+float maxVoltage = 4100.0f;
+float minVoltage = 2930.0f;
 
-
+//sleep timer data
 TimerEvent_t sleepTimer;
 bool sleepTimerExpired;
 
+//ping object
 NewPing sonar(TRIG_PIN, ECHO_PIN, MAX_DISTANCE);
 
 void wakeUp() {
@@ -65,20 +68,18 @@ void setup() {
 void loop() {
   delay(1500);
 
-  uint16_t batteryVoltage = getBatteryVoltage(); // Get battery voltage
-  batteryLevel = batteryVoltage / 18; // Example scaling, adjust as needed
+  float batteryVoltage = getBatteryVoltage(); // Get battery voltage
+  float percent = (batteryVoltage - minVoltage) * 100.0f / (maxVoltage - minVoltage);
+  batteryLevel = (uint8_t)percent;
 
   Serial.print("Battery: ");
   Serial.print(batteryVoltage);
   Serial.println(" mV");
 
   Serial.print("Ping: ");
-  distance_long = sonar.ping_cm(); // Get distance in cm
-  Serial.print(distance_long);
+  distance = sonar.ping_cm(); // Get distance in cm
+  Serial.print(distance);
   Serial.println(" cm");
-
-  // Prepare distance
-  distance = distance_long > 255 ? 255 : (uint8_t)distance_long;
 
   // Prepare data array
   uint8_t data[2];
@@ -88,7 +89,7 @@ void loop() {
   Serial.printf("\nSending packet with battery level=%d and distance=%d\n", data[0], data[1]);
 
   // Send data
-  if (LoRaWAN.send(2, data, 1, true)) { // Modify as needed for ACK
+  if (LoRaWAN.send(sizeof(data), data, 1, true)) { // Modify as needed for ACK
     Serial.println("Send OK");
   } else {
     Serial.println("Send FAILED");
