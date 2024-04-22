@@ -136,7 +136,7 @@ app.get("/mock_get-devices", async (req, res) => {
 
 app.get("/testtest", (req, res) => {
   console.log("req");
-  console.log(req);
+  console.log(req.ip);
 
   res.json({
     msg: "received",
