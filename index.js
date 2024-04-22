@@ -120,6 +120,7 @@ io.on("connection", async (socket) => {
   //   socket.emit("request_data", registered_devices);
   // }, SOCKET_INTERVAL);
 });
+
 //
 //
 //
@@ -133,6 +134,19 @@ app.get("/mock_get-devices", async (req, res) => {
   });
 });
 
+app.get("/testtest", (req, res) => {
+  console.log("req");
+  console.log(req);
+
+  res.json({
+    msg: "received",
+  });
+});
+
+//
+//
+//
+//
 app.post("/mock_update-values", async (req, res) => {
   const {
     id,
