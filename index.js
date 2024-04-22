@@ -782,6 +782,7 @@ app.post("/get-historical", isUserAuthorized, async (req, res) => {
 
         res.json({
           status: 1,
+          notManipulated: data,
           historicalData: result,
         });
       });
@@ -796,6 +797,7 @@ app.post("/get-historical", isUserAuthorized, async (req, res) => {
 
         res.json({
           status: 1,
+          notManipulated: data,
           historicalData: result,
         });
       });
