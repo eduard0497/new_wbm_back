@@ -134,7 +134,7 @@ app.get("/mock_get-devices", async (req, res) => {
   });
 });
 
-app.get("/testtest", (req, res) => {
+app.get("/find-out-ip", (req, res) => {
   console.log("req");
   console.log(req.ip);
 
