@@ -119,6 +119,10 @@ io.on("connection", async (socket) => {
   //   //   });
   //   socket.emit("request_data", registered_devices);
   // }, SOCKET_INTERVAL);
+
+  socket.on("disconnect", () => {
+    console.log(`${socket.id} disconnected`);
+  });
 });
 
 //
