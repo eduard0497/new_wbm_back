@@ -487,6 +487,12 @@ app.post("/get-unknown-devices", isUserAuthorized, async (req, res) => {
 
 app.post("/hardware-update-bin", async (req, res) => {
   const { deviceID, battery, level, reception } = req.body;
+  console.log("------------------");
+  console.log("Device ID: " + deviceID);
+  console.log("Distance: " + level);
+  console.log("Battery: " + battery);
+  console.log("Reception: " + reception);
+  console.log("------------------");
 
   let foundDevicesByID = await db(db_table_devices)
     .select("*")
@@ -542,8 +548,6 @@ app.post("/hardware-update-bin", async (req, res) => {
             }),
           })
           .then((data) => {
-            console.log("data after adding to historical:");
-            console.log(data);
             if (!data.length) {
               res.json({
                 status: 0,
@@ -818,6 +822,25 @@ app.post("/get-historical-for-routes", isUserAuthorized, async (req, res) => {
       res.json({
         status: 0,
         msg: "Error occured",
+      });
+    });
+});
+
+app.post("/clear-all-historical", isUserAuthorized, async (req, res) => {
+  db(db_table_historical)
+    .returning("*")
+    .truncate()
+    .then((data) => {
+      res.json({
+        status: 1,
+        msg: "All historical cleared successfully",
+      });
+    })
+    .catch((e) => {
+      console.log(e);
+      res.json({
+        status: 0,
+        msg: "Server side error occured",
       });
     });
 });
