@@ -33,7 +33,9 @@ console.log(corsOptions);
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+if (process.env.FRONT_END_DOMAIN !== "http://localhost:3001") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+}
 
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -89,20 +91,21 @@ const db_table_historical = "historical";
 const SOCKET_INTERVAL = parseInt(process.env.SOCKET_INTERVAL);
 
 io.on("connection", async (socket) => {
-  console.log("ID connected: " + socket.id);
+  console.log(`${socket.id} ++++++++++`);
 
-  let registered_devices = await db(db_table_devices)
-    .select("*")
-    .where({
-      is_registered: true,
-    })
-    .orderBy("unique_id");
+  // let registered_devices = await db(db_table_devices)
+  //   .select("*")
+  //   .where({
+  //     is_registered: true,
+  //   })
+  // .orderBy("unique_id");
+  //
   // let unregistered_devices = await db(db_table_devices_current_info)
   //   .select("*")
   //   .where({
   //     is_registered: false,
   //   });
-  socket.emit("request_data", registered_devices);
+  // socket.emit("request_data", registered_devices);
 
   // setInterval(async () => {
   //   console.log("Emitting to Front End");
@@ -121,7 +124,7 @@ io.on("connection", async (socket) => {
   // }, SOCKET_INTERVAL);
 
   socket.on("disconnect", () => {
-    console.log(`${socket.id} disconnected`);
+    console.log(`${socket.id} ----------`);
   });
 });
 
